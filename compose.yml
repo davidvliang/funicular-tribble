@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  backend:
+    image: python:3.11
+    build: ./backend
+    ports: 
+      - 5001:5001
+    volumes:
+      - ./backend:/opt
+
+  frontend:
+    image: node:21.6.0-alpine3.18
+    build: ./frontend
+    ports:
+      - 5173:5173
+    volumes:
+      - ./frontend/public:/opt/public
+      - ./frontend/src:/opt/src
+      - ./frontend/index.html:/opt/index.html
+      - ./frontend/vite.config.js:/opt/vite.config.js
+      - ./frontend/.eslintrc.cjs:/opt/.eslintrc.cjs
+
