@@ -11,7 +11,6 @@ COPY ./requirements.txt /opt/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /opt/requirements.txt
 
 #
-expose 5001
+EXPOSE 8000
 
-# 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5001", "--reload"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
