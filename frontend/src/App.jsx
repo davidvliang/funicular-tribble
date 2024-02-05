@@ -1,104 +1,274 @@
-import { useState, useEffect, useRef } from 'react'
-import './App.css'
+import { useState, useEffect, useRef } from "react";
+import { io } from "socket.io-client";
+import "./App.css";
 
-import Container from '@mui/material/Container';
-import CssBaseline from '@mui/material/CssBaseline';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
-import Avatar from '@mui/material/Avatar';
-import Tabs from '@mui/material/Tabs'
-import Tab from '@mui/material/Tab'
-import RefreshIcon from '@mui/icons-material/Refresh';
+import Container from "@mui/material/Container";
+import AppBar from "@mui/material/AppBar";
+import Paper from "@mui/material/Paper";
+import Box from "@mui/material/Box";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
+import Grid from "@mui/material/Grid";
+import Stack from "@mui/material/Stack";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import SettingsIcon from "@mui/icons-material/Settings";
+import MenuIcon from "@mui/icons-material/Menu";
+import Avatar from "@mui/material/Avatar";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import Select from "@mui/material/Select";
+import TextField from "@mui/material/TextField";
+import Autocomplete from "@mui/material/Autocomplete";
+import InputAdornment from "@mui/material/InputAdornment";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 
-import AntennaPattern from './components/AntennaPattern';
-import CellArray from './components/CellArray'
+import CustomTabPanel from "./components/CustomTabPanel";
+import AntennaPattern from "./components/AntennaPattern";
+import ManualConfiguration from "./components/ManualConfiguration";
+import AutoConfiguration from "./components/AutoConfiguration";
+import Settings from "./components/Settings";
+
+const SERVER_URL = "http://localhost:8000"
+// const socket = io(SERVER_URL, { path: "/sockets" });
 
 export default function App() {
-  const [selectedTab, setSelectedTab] = useState(0)
-  const [isRunning, setIsRunning] = useState(false)
-  const [count, setCount] = useState(0)
-  const [status, setStatus] = useState("")
+  const [isConnected, setIsConnected] = useState(false);
 
-  const submitRef = useRef()
+  const [selectedTab, setSelectedTab] = useState(1);
+  const [isRunning, setIsRunning] = useState(false);
+  const [count, setCount] = useState(0);
+  const [status, setStatus] = useState("");
+
+  const [arraySize, setArraySize] = useState(4);
+  const arraySizeOptions = Array.from({ length: 16 }, (_, i) => i + 1);
+  const [frequency, setFrequency] = useState(50);
+  const [bitness, setBitness] = useState(1);
+
+  const submitRef = useRef();
 
   const newStatus = {
-    "data": count + 1,
-  }
+    data: count + 1,
+  };
+
+  // useEffect(() => {
+  //   socket.on("connect", () => {
+  //     console.log("connected");
+  //     setIsConnected(socket.connected);
+  //   });
+  //   socket.on("disconnect", () => {
+  //     console.log("disconnected");
+  //     setIsConnected(socket.connected);
+  //   });
+
+  //   socket.on("join", (data) => {
+  //     console.log("JOIN", data);
+  //   });
+  // }, []);
 
   const fetchStatus = async () => {
-    const response = await fetch("http://localhost:5001/")
-    const status = await response.text()
-    setStatus(status)
-    console.log("here", status)
-  }
+    const response = await fetch(SERVER_URL);
+    const status = await response.text();
+    setStatus(status);
+    console.log("here", status);
+  };
 
   useEffect(() => {
-    fetchStatus()
-  }, [])
+    fetchStatus();
+  }, []);
 
   const handleClick = () => {
-    fetch("http://localhost:5001/daq", {
+    fetch(SERVER_URL+"/daq", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newStatus)
-    }).then(fetchStatus)
-    console.log("")
-  }
+      body: JSON.stringify(newStatus),
+    }).then(fetchStatus);
+    console.log("");
+  };
+
+  const handleTabChange = (event, val) => {
+    setSelectedTab(val);
+  };
 
   const handleStartButton = (event) => {
-    console.log("start button pressed.")
-    setIsRunning(true)
-    submitRef.current.requestSubmit()
-  }
+    console.log("start button pressed.");
+    setIsRunning(true);
+    // submitRef.current.requestSubmit()
+  };
 
   const handleStopButton = () => {
-    console.log("stop button pressed.")
-    setIsRunning(false)
-  }
+    console.log("stop button pressed.");
+    setIsRunning(false);
+  };
 
   const handleResetButton = () => {
-    console.log("reset button pressed.")
-  }
+    console.log("reset button pressed.");
+  };
+
+  const handleArraySizeChange = (e) => {
+    setArraySize(e.target.value);
+  };
+
+  const handleFrequencyChange = (e) => {
+    setFrequency(e.target.value);
+  };
+
+  const handleBitnessChange = (e) => {
+    setBitness(e.target.value);
+  };
 
   return (
     <>
-      <AppBar position="static" style={{ position: "sticky", position: "-webkit-sticky" }}>
+      <AppBar
+        color="navigation"
+        position="static"
+        style={{ position: "sticky" }}
+      >
         <Toolbar sx={{ justifyContent: "space-between" }}>
-          <Avatar variant="rounded" src="public/uhm-coe.png" sx={{ mx: 2 }} />
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: "bold" }} display={{ xs: "none", sm: "block" }}>
+          <Avatar variant="rounded" src="/uhm-coe.png" sx={{ mx: { sm: 2 } }} />
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{ flexGrow: 1, fontWeight: "bold" }}
+            display={{ xs: "none", md: "block" }}
+          >
             IRS Control System
           </Typography>
           <Stack spacing={2} direction="row" sx={{ justifyContent: "end" }}>
-            <Button color="error" variant="contained" onClick={handleStopButton} disabled={!isRunning}>Stop Program</Button>
-            <Button color="success" variant="contained" onClick={handleStartButton} disabled={isRunning}>Start</Button>
-            <Button color="grey" variant="contained" onClick={handleResetButton} disabled={isRunning}><RefreshIcon /></Button>
+            <Button variant="contained" onClick={handleClick}>
+              AH {status}
+            </Button>
+            <Button
+              color="error"
+              variant="contained"
+              onClick={handleStopButton}
+              disabled={!isRunning}
+            >
+              Stop Program
+            </Button>
+            <Button
+              color="primary"
+              variant="contained"
+              onClick={handleStartButton}
+              disabled={isRunning}
+            >
+              Start
+            </Button>
+            <Button
+              color="grey"
+              variant="contained"
+              onClick={handleResetButton}
+              disabled={isRunning}
+            >
+              <RefreshIcon />
+            </Button>
           </Stack>
         </Toolbar>
       </AppBar>
-      {/* <Tabs value={selectedTab} onChange={(e) => setSelectedTab(e.target.value)}>
-        <Tab label="Main" />
-        <Tab label="Cell Configuration" />
-        <Tab label="Settings" />
-      </Tabs> */}
 
-      <Container maxWidth="lg" style={{ width: "100%", my: 5 }}>
+      <Stack spacing={2} direction="row" sx={{ m: 2 }}>
+        <Typography>Is Connected: {isConnected}</Typography>
+      </Stack>
 
-
-
-
-        <Stack spacing={2} direction="row" sx={{ m: 2 }}>
-          <Button variant="contained" onClick={handleClick}>Contained {status}</Button>
-        </Stack>
-        {/* <AntennaPattern /> */}
-        <CellArray submitRef={submitRef} />
+      <Container>
+        <Paper style={{ margin: "25px", padding: "25px" }}>
+          <Grid
+            container
+            spacing={3}
+            // columns={{ xs: 1, md: 2 }}
+            direction="row"
+            justify="center"
+            alignItems="stretch"
+          >
+            <Grid item xs={6}>
+              <Grid style={{ height: "100%" }}>
+                <AntennaPattern />
+              </Grid>
+            </Grid>
+            <Grid item xs={6}>
+              <Grid container direction="column" spacing={3}>
+                <Grid item xs={12}>
+                  <FormControl style={{ width: "100%" }}>
+                    <InputLabel>Array Size</InputLabel>
+                    <Select
+                      value={arraySize}
+                      label="Array Size"
+                      onChange={(e) => handleArraySizeChange(e)}
+                      disabled={isRunning}
+                      // size="small"
+                    >
+                      {Array.from(Array(8)).map((_, val) => (
+                        <MenuItem
+                          key={`arraySize-menu-item-${val + 1}`}
+                          value={val + 1}
+                        >
+                          {val + 1}x{val + 1}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControl style={{ width: "100%" }}>
+                    <TextField
+                      value={frequency}
+                      label="Frequency"
+                      onChange={(e) => handleFrequencyChange(e)}
+                      disabled={isRunning}
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">Hz</InputAdornment>
+                        ),
+                      }}
+                      // size="small"
+                    />
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <ToggleButtonGroup
+                    value={bitness}
+                    exclusive
+                    onChange={handleBitnessChange}
+                    size="small"
+                  >
+                    <ToggleButton value="1">1-Bit</ToggleButton>
+                    <ToggleButton value="2">2-Bit</ToggleButton>
+                  </ToggleButtonGroup>
+                </Grid>
+              </Grid>
+            </Grid>
+          </Grid>
+        </Paper>
       </Container>
-    </>
-  )
-}
 
+      {/* <Paper sx={{ m: "25px", px: "0px" }}> */}
+      <Tabs value={selectedTab} onChange={handleTabChange} centered>
+        <Tab label="Auto" />
+        <Tab label="Manual" />
+        <Tab label={<SettingsIcon sx={{ fontSize: "medium" }} />} />
+      </Tabs>
+      <CustomTabPanel value={selectedTab} index={0}>
+        {/* <div style={{display: {selectedTab = 0 ? "" : ""}}}> */}
+        <AutoConfiguration isRunning={isRunning} />
+
+        {/* </div> */}
+      </CustomTabPanel>
+      <CustomTabPanel value={selectedTab} index={1}>
+        <ManualConfiguration
+          submitRef={submitRef}
+          isRunning={isRunning}
+          arraySize={arraySize}
+        />
+      </CustomTabPanel>
+      <CustomTabPanel value={selectedTab} index={2}>
+        <Settings />
+      </CustomTabPanel>
+      {/* </Paper> */}
+    </>
+  );
+}
