@@ -1,19 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_socketio import SocketManager
+
 from typing import Union
 
 from .daq.demux_redux import ControlSystem
+from .daq.antenna_pattern_plot import generate_antenna_pattern
 
 app = FastAPI()
+# sio = SocketManager(app=app)
 
-origins = [
-    "http://localhost:5173",
-    "localhost:5173"
-]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
@@ -23,10 +23,10 @@ is_running = 0
 cell_configuration = {}
 
 def get_server_status():
-    return "World STATUS IS FINE" + " " + str(is_running)
+    return str(is_running)
 
 @app.get("/")
-def read_root():
+def root():
     return get_server_status()
 
 
@@ -38,3 +38,11 @@ async def submit_configuration():
         "data": { is_running }
     }
 
+# @app.sio.on('join')
+# async def handle_join(sid, *args, **kwargs):
+#     await app.sio.emit('lobby', 'User joined')
+
+# @app.get("/pattern")
+# def get_antenna_pattern(data):
+    
+#     return generate_antenna_pattern(data)

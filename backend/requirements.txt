@@ -2,3 +2,4 @@ numpy
 nidaqmx
 uvicorn
 fastapi
+fastapi-socketio
