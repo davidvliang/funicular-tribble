@@ -1,3 +1,6 @@
+import { useState, useEffect } from "react";
+import { useFormContext } from "react-hook-form";
+
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
@@ -8,6 +11,11 @@ import Slider from "@mui/material/Slider";
 
 export default function HeaderCell(props) {
   const { children, row, col, arraySize, ...other } = props;
+  const { register, setValue } = useFormContext();
+
+  const [cellState, setCellState] = useState(0);
+  const [voltage, setVoltage] = useState([-10, 10]);
+  const [dutyCycle, setDutyCycle] = useState(50);
 
   return (
     <Grid container sx={{ px: 0, py: 0 }}>
@@ -15,13 +23,20 @@ export default function HeaderCell(props) {
       <Grid container spacing={2}>
         <Grid item xs={10}>
           <Slider
-            defaultValue={[-10, 10]}
+            value={voltage}
             min={-10}
             max={10}
             step={1}
             // marks
             valueLabelDisplay="auto"
             size="small"
+            onChange={(e,val) => {
+              console.log("voltage", val)
+              Array.from(Array(arraySize)).map((_,i) => {
+                setValue(`configuration.cell_${i * arraySize + col}.voltage`, val[0])
+              })
+              setVoltage(val)
+            }}
           />
         </Grid>
         <Grid item xs={2}>
@@ -33,11 +48,18 @@ export default function HeaderCell(props) {
       <Grid container spacing={2}>
         <Grid item xs={10}>
           <Slider
-            defaultValue={50}
+            value={dutyCycle}
+            min={0}
+            max={100}
             step={5}
-            // marks
             valueLabelDisplay="auto"
             size="small"
+            onChange={(e,val) => {
+              Array.from(Array(arraySize)).map((_,i) => {
+                setValue(`configuration.cell_${i * arraySize + col}.dutyCycle`, val)
+              })
+              setDutyCycle(val)
+            }}
           />
         </Grid>
         <Grid item xs={2}>

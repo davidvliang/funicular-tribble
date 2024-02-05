@@ -1,35 +1,28 @@
 import { useState, useEffect } from "react";
-// import { useForm } from 'react-hook-form'
+import { useFormContext } from "react-hook-form";
 import { styled } from "@mui/material/styles";
 
-import Container from "@mui/material/Container";
-import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 
 import Accordion from "@mui/material/Accordion";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import AccordionSummary from "@mui/material/AccordionSummary";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import Typography from "@mui/material/Typography";
-
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
 
 import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import DownloadIcon from "@mui/icons-material/Download";
 import Switch from "@mui/material/Switch";
-import Slider from "@mui/material/Slider";
 
+import DownloadIcon from "@mui/icons-material/Download";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
+
 import UnitCell from "./UnitCell";
 import HeaderCell from "./HeaderCell";
 
@@ -50,7 +43,12 @@ export default function ManualConfiguration({
   isRunning,
   arraySize,
 }) {
-  // const { register, setValue, getValues, ...other } = useForm()
+  const { register, handleSubmit, setValue, getValues, ...other } =
+    useFormContext();
+
+  const onSubmit = (data) => {
+    console.log("SUBMIT DATA", data);
+  };
 
   const [expanded, setExpanded] = useState(false);
 
@@ -60,7 +58,6 @@ export default function ManualConfiguration({
 
   return (
     //     {/* <Button ref={submitRef} type='submit' variant='contained' style={{ display: 'none' }} /> */}
-
     <Grid container>
       <Grid item xs={12} sx={{ mx: 5 }}>
         <Stack direction="row" spacing={2}>
@@ -89,7 +86,11 @@ export default function ManualConfiguration({
         sx={{ mx: "auto" }}
         style={{ overflowX: "auto", whiteSpace: "nowrap" }}
       >
-        <form name="cellArray" ref={submitRef}>
+        <form
+          name="cellArray"
+          ref={submitRef}
+          onSubmit={handleSubmit(onSubmit)}
+        >
           <Table
             padding="none"
             size="small"
@@ -122,6 +123,7 @@ export default function ManualConfiguration({
 
                 {Array.from(Array(arraySize)).map((_, header) => (
                   <TableCell
+                    key={`key-header-${header}`}
                     sx={{
                       borderBottom: "none",
                       p: 1,
@@ -168,8 +170,9 @@ export default function ManualConfiguration({
 
             <TableBody>
               {Array.from(Array(arraySize)).map((_, row) => (
-                <TableRow>
+                <TableRow key={`key-row-${row}`}>
                   <TableCell
+                    key={`key-row-idx-${row}`}
                     sx={{
                       borderBottom: "none",
                       p: 1,
@@ -181,8 +184,16 @@ export default function ManualConfiguration({
                     {row}
                   </TableCell>
                   {Array.from(Array(arraySize)).map((_, col) => (
-                    <TableCell sx={{ borderBottom: "none", p: 1, width: 1 }}>
-                      <UnitCell row={row} col={col} arraySize={arraySize} />
+                    <TableCell
+                      key={`key-cell-${row * arraySize + col}`}
+                      sx={{ borderBottom: "none", p: 1, width: 1 }}
+                    >
+                      <UnitCell
+                        row={row}
+                        col={col}
+                        arraySize={arraySize}
+                        // {...register("test")}
+                      />
                     </TableCell>
                   ))}
                 </TableRow>

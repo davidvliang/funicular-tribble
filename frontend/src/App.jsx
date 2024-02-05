@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+
 import { io } from "socket.io-client";
-import "./App.css";
 
 import Container from "@mui/material/Container";
 import AppBar from "@mui/material/AppBar";
@@ -34,21 +35,22 @@ import ManualConfiguration from "./components/ManualConfiguration";
 import AutoConfiguration from "./components/AutoConfiguration";
 import Settings from "./components/Settings";
 
-const SERVER_URL = "http://localhost:8000"
+const SERVER_URL = "http://localhost:8000";
 // const socket = io(SERVER_URL, { path: "/sockets" });
 
 export default function App() {
+  const methods = useForm();
+
   const [isConnected, setIsConnected] = useState(false);
 
-  const [selectedTab, setSelectedTab] = useState(1);
+  const [selectedTab, setSelectedTab] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [count, setCount] = useState(0);
   const [status, setStatus] = useState("");
 
   const [arraySize, setArraySize] = useState(4);
-  const arraySizeOptions = Array.from({ length: 16 }, (_, i) => i + 1);
   const [frequency, setFrequency] = useState(50);
-  const [bitness, setBitness] = useState(1);
+  const [bitness, setBitness] = useState("1");
 
   const submitRef = useRef();
 
@@ -83,7 +85,7 @@ export default function App() {
   }, []);
 
   const handleClick = () => {
-    fetch(SERVER_URL+"/daq", {
+    fetch(SERVER_URL + "/daq", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newStatus),
@@ -98,7 +100,7 @@ export default function App() {
   const handleStartButton = (event) => {
     console.log("start button pressed.");
     setIsRunning(true);
-    // submitRef.current.requestSubmit()
+    submitRef.current.requestSubmit()
   };
 
   const handleStopButton = () => {
@@ -108,6 +110,7 @@ export default function App() {
 
   const handleResetButton = () => {
     console.log("reset button pressed.");
+    methods.reset()
   };
 
   const handleArraySizeChange = (e) => {
@@ -118,8 +121,11 @@ export default function App() {
     setFrequency(e.target.value);
   };
 
-  const handleBitnessChange = (e) => {
-    setBitness(e.target.value);
+  const handleBitnessChange = (e, val) => {
+    if (val !== null) {
+      console.log("bitness", val)
+      setBitness(val);
+    }
   };
 
   return (
@@ -175,100 +181,103 @@ export default function App() {
         <Typography>Is Connected: {isConnected}</Typography>
       </Stack>
 
-      <Container>
-        <Paper style={{ margin: "25px", padding: "25px" }}>
-          <Grid
-            container
-            spacing={3}
-            // columns={{ xs: 1, md: 2 }}
-            direction="row"
-            justify="center"
-            alignItems="stretch"
-          >
-            <Grid item xs={6}>
-              <Grid style={{ height: "100%" }}>
-                <AntennaPattern />
+      <FormProvider {...methods}>
+        <Container>
+          <Paper style={{ margin: "25px", padding: "25px" }}>
+            <Grid
+              container
+              spacing={3}
+              // columns={{ xs: 1, md: 2 }}
+              direction="row"
+              justify="center"
+              alignItems="stretch"
+            >
+              <Grid item xs={6}>
+                <Grid style={{ height: "100%" }}>
+                  <AntennaPattern />
+                </Grid>
               </Grid>
-            </Grid>
-            <Grid item xs={6}>
-              <Grid container direction="column" spacing={3}>
-                <Grid item xs={12}>
-                  <FormControl style={{ width: "100%" }}>
-                    <InputLabel>Array Size</InputLabel>
-                    <Select
-                      value={arraySize}
-                      label="Array Size"
-                      onChange={(e) => handleArraySizeChange(e)}
-                      disabled={isRunning}
-                      // size="small"
+              <Grid item xs={6}>
+                <Grid container direction="column" spacing={3}>
+                  <Grid item xs={12}>
+                    <FormControl style={{ width: "100%" }}>
+                      <InputLabel>Array Size</InputLabel>
+                      <Select
+                        value={arraySize}
+                        label="Array Size"
+                        {...methods.register("arrayDimension")}
+                        onChange={(e) => handleArraySizeChange(e)}
+                        disabled={isRunning}
+                        // size="small"
+                      >
+                        {Array.from(Array(8)).map((_, val) => (
+                          <MenuItem
+                            key={`arraySize-menu-item-${val + 1}`}
+                            value={val + 1}
+                          >
+                            {val + 1}x{val + 1}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <FormControl style={{ width: "100%" }}>
+                      <TextField
+                        value={frequency}
+                        label="Frequency"
+                        {...methods.register("frequency")}
+                        onChange={(e) => handleFrequencyChange(e)}
+                        disabled={isRunning}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">Hz</InputAdornment>
+                          ),
+                        }}
+                        // size="small"
+                      />
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <ToggleButtonGroup
+                      value={bitness}
+                      exclusive
+                      size="small"
+                      {...methods.register("bitness")}
+                      onChange={handleBitnessChange}
                     >
-                      {Array.from(Array(8)).map((_, val) => (
-                        <MenuItem
-                          key={`arraySize-menu-item-${val + 1}`}
-                          value={val + 1}
-                        >
-                          {val + 1}x{val + 1}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12}>
-                  <FormControl style={{ width: "100%" }}>
-                    <TextField
-                      value={frequency}
-                      label="Frequency"
-                      onChange={(e) => handleFrequencyChange(e)}
-                      disabled={isRunning}
-                      InputProps={{
-                        endAdornment: (
-                          <InputAdornment position="end">Hz</InputAdornment>
-                        ),
-                      }}
-                      // size="small"
-                    />
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12}>
-                  <ToggleButtonGroup
-                    value={bitness}
-                    exclusive
-                    onChange={handleBitnessChange}
-                    size="small"
-                  >
-                    <ToggleButton value="1">1-Bit</ToggleButton>
-                    <ToggleButton value="2">2-Bit</ToggleButton>
-                  </ToggleButtonGroup>
+                      <ToggleButton value="1">1-Bit</ToggleButton>
+                      <ToggleButton value="2">2-Bit</ToggleButton>
+                    </ToggleButtonGroup>
+                  </Grid>
                 </Grid>
               </Grid>
             </Grid>
-          </Grid>
-        </Paper>
-      </Container>
+          </Paper>
+        </Container>
 
-      {/* <Paper sx={{ m: "25px", px: "0px" }}> */}
-      <Tabs value={selectedTab} onChange={handleTabChange} centered>
-        <Tab label="Auto" />
-        <Tab label="Manual" />
-        <Tab label={<SettingsIcon sx={{ fontSize: "medium" }} />} />
-      </Tabs>
-      <CustomTabPanel value={selectedTab} index={0}>
-        {/* <div style={{display: {selectedTab = 0 ? "" : ""}}}> */}
-        <AutoConfiguration isRunning={isRunning} />
+        <Tabs value={selectedTab} onChange={handleTabChange} centered>
+          <Tab label="Auto" />
+          <Tab label="Manual" />
+          <Tab label={<SettingsIcon sx={{ fontSize: "medium" }} />} />
+        </Tabs>
+        <CustomTabPanel value={selectedTab} index={0}>
+          <AutoConfiguration isRunning={isRunning} />
+          {/* <div style={{display: {selectedTab = 0 ? "" : ""}}}> */}
 
-        {/* </div> */}
-      </CustomTabPanel>
-      <CustomTabPanel value={selectedTab} index={1}>
-        <ManualConfiguration
-          submitRef={submitRef}
-          isRunning={isRunning}
-          arraySize={arraySize}
-        />
-      </CustomTabPanel>
-      <CustomTabPanel value={selectedTab} index={2}>
-        <Settings />
-      </CustomTabPanel>
-      {/* </Paper> */}
+          {/* </div> */}
+        </CustomTabPanel>
+        <CustomTabPanel value={selectedTab} index={1}>
+          <ManualConfiguration
+            submitRef={submitRef}
+            isRunning={isRunning}
+            arraySize={arraySize}
+          />
+        </CustomTabPanel>
+        <CustomTabPanel value={selectedTab} index={2}>
+          <Settings />
+        </CustomTabPanel>
+      </FormProvider>
     </>
   );
 }

@@ -69,7 +69,6 @@ export default function AutoConfiguration({ isRunning }) {
       <Grid container spacing={2} alignItems="center">
         <Grid item xs={12}>
           <Slider
-            className="testssda"
             // value={typeof value === "number" ? value : 0}
             value={value}
             defaultValue={[0, 10]}
@@ -79,14 +78,14 @@ export default function AutoConfiguration({ isRunning }) {
             onChange={handleSliderChange}
             disabled={isRunning}
             // track={false}
-            marks
-            sx={{
-              "&+ .MuiSlider-thumb": {
-                display: "none",
-              },
-            }}
+            // marks
+            // sx={{
+            //   "& .MuiSlider-thumb": {
+            //     display: "none",
+            //   },
+            // }}
           />
-          <DeviationSlider />
+          {/* <DeviationSlider /> */}
         </Grid>
       </Grid>
     </Container>
