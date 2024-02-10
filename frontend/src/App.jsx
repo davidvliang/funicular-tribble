@@ -21,6 +21,7 @@ import Tab from "@mui/material/Tab";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
+import SendIcon from '@mui/icons-material/Send';
 import RefreshIcon from "@mui/icons-material/Refresh";
 import Select from "@mui/material/Select";
 import TextField from "@mui/material/TextField";
@@ -42,8 +43,9 @@ export default function App() {
   const methods = useForm();
 
   const [isConnected, setIsConnected] = useState(false);
+  const [isReset, setIsReset] = useState(false);
 
-  const [selectedTab, setSelectedTab] = useState(0);
+  const [selectedTab, setSelectedTab] = useState(1);
   const [isRunning, setIsRunning] = useState(false);
   const [count, setCount] = useState(0);
   const [status, setStatus] = useState("");
@@ -57,6 +59,9 @@ export default function App() {
   const newStatus = {
     data: count + 1,
   };
+
+  methods.register("bitness", { value: bitness })
+
 
   // useEffect(() => {
   //   socket.on("connect", () => {
@@ -80,6 +85,22 @@ export default function App() {
     console.log("here", status);
   };
 
+  const fetchStartProgram = async () => {
+    const response = await fetch(SERVER_URL+"/daq")
+    const status = await response.text()
+    
+  }
+
+  const fetchAntennaPattern = async (data = {}) => {
+    const response = await fetch(SERVER_URL + "/daq", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    })
+    const status = response.json()
+    console.log(status);
+  }
+
   useEffect(() => {
     fetchStatus();
   }, []);
@@ -101,6 +122,8 @@ export default function App() {
     console.log("start button pressed.");
     setIsRunning(true);
     submitRef.current.requestSubmit()
+    const result = methods.getValues()
+    console.log("getValues", result)
   };
 
   const handleStopButton = () => {
@@ -110,11 +133,13 @@ export default function App() {
 
   const handleResetButton = () => {
     console.log("reset button pressed.");
-    methods.reset()
+    setIsReset(isReset ? false : true)
   };
 
   const handleArraySizeChange = (e) => {
     setArraySize(e.target.value);
+    setIsReset(isReset ? false : true)
+    setIsReset(isReset ? false : true)
   };
 
   const handleFrequencyChange = (e) => {
@@ -124,6 +149,7 @@ export default function App() {
   const handleBitnessChange = (e, val) => {
     if (val !== null) {
       console.log("bitness", val)
+      methods.setValue("bitness", val)
       setBitness(val);
     }
   };
@@ -132,8 +158,7 @@ export default function App() {
     <>
       <AppBar
         color="navigation"
-        position="static"
-        style={{ position: "sticky" }}
+        position="sticky"
       >
         <Toolbar sx={{ justifyContent: "space-between" }}>
           <Avatar variant="rounded" src="/uhm-coe.png" sx={{ mx: { sm: 2 } }} />
@@ -160,6 +185,7 @@ export default function App() {
             <Button
               color="primary"
               variant="contained"
+              endIcon={<SendIcon />}
               onClick={handleStartButton}
               disabled={isRunning}
             >
@@ -177,10 +203,6 @@ export default function App() {
         </Toolbar>
       </AppBar>
 
-      <Stack spacing={2} direction="row" sx={{ m: 2 }}>
-        <Typography>Is Connected: {isConnected}</Typography>
-      </Stack>
-
       <FormProvider {...methods}>
         <Container>
           <Paper style={{ margin: "25px", padding: "25px" }}>
@@ -194,7 +216,10 @@ export default function App() {
             >
               <Grid item xs={6}>
                 <Grid style={{ height: "100%" }}>
-                  <AntennaPattern />
+                  <Stack spacing={0} sx={{ m: 0 }}>
+                    <Typography variant="button">Status: {isConnected ? "Connected" : "Disconnected"}</Typography>
+                    <AntennaPattern isReset={isReset} />
+                  </Stack>
                 </Grid>
               </Grid>
               <Grid item xs={6}>
@@ -208,7 +233,7 @@ export default function App() {
                         {...methods.register("arrayDimension")}
                         onChange={(e) => handleArraySizeChange(e)}
                         disabled={isRunning}
-                        // size="small"
+                      // size="small"
                       >
                         {Array.from(Array(8)).map((_, val) => (
                           <MenuItem
@@ -234,7 +259,7 @@ export default function App() {
                             <InputAdornment position="end">Hz</InputAdornment>
                           ),
                         }}
-                        // size="small"
+                      // size="small"
                       />
                     </FormControl>
                   </Grid>
@@ -243,8 +268,8 @@ export default function App() {
                       value={bitness}
                       exclusive
                       size="small"
-                      {...methods.register("bitness")}
                       onChange={handleBitnessChange}
+                      disabled={isRunning}
                     >
                       <ToggleButton value="1">1-Bit</ToggleButton>
                       <ToggleButton value="2">2-Bit</ToggleButton>
@@ -262,7 +287,7 @@ export default function App() {
           <Tab label={<SettingsIcon sx={{ fontSize: "medium" }} />} />
         </Tabs>
         <CustomTabPanel value={selectedTab} index={0}>
-          <AutoConfiguration isRunning={isRunning} />
+          <AutoConfiguration isRunning={isRunning} isReset={isReset} />
           {/* <div style={{display: {selectedTab = 0 ? "" : ""}}}> */}
 
           {/* </div> */}
@@ -271,6 +296,7 @@ export default function App() {
           <ManualConfiguration
             submitRef={submitRef}
             isRunning={isRunning}
+            isReset={isReset}
             arraySize={arraySize}
           />
         </CustomTabPanel>
