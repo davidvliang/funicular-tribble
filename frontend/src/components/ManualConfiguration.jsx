@@ -38,13 +38,16 @@ const VisuallyHiddenInput = styled("input")({
   width: 1,
 });
 
-export default function ManualConfiguration({
-  submitRef,
-  isRunning,
-  arraySize,
-}) {
-  const { register, handleSubmit, setValue, getValues, ...other } =
-    useFormContext();
+export default function ManualConfiguration(props) {
+  const {
+    submitRef,
+    isRunning,
+    isReset,
+    arraySize,
+    ...other
+  } = props;
+
+  const { register, handleSubmit, setValue, getValues } = useFormContext();
 
   const onSubmit = (data) => {
     console.log("SUBMIT DATA", data);
@@ -58,27 +61,32 @@ export default function ManualConfiguration({
 
   return (
     //     {/* <Button ref={submitRef} type='submit' variant='contained' style={{ display: 'none' }} /> */}
-    <Grid container>
-      <Grid item xs={12} sx={{ mx: 5 }}>
-        <Stack direction="row" spacing={2}>
-          <Button
-            component="label"
-            variant="contained"
-            startIcon={<FileUploadIcon />}
-            disabled={isRunning}
-          >
-            Upload Configuration
-            <VisuallyHiddenInput type="file" />
-          </Button>
-          <Button
-            component="label"
-            variant="contained"
-            startIcon={<DownloadIcon />}
-            style={{ marginBottom: "0px" }}
-          >
-            Download Configuration
-          </Button>
-        </Stack>
+    <Grid container justifyContent="center">
+      <Grid item xs={8} sx={{ mx: 5 }}>
+        <Grid container spacing={2} justifyContent="end" xs={12} sx={{ mb: 2 }}>
+          <Grid item>
+            <Button
+              component="label"
+              variant="contained"
+              startIcon={<FileUploadIcon />}
+              disabled={isRunning}
+            >
+              Upload Configuration
+              <VisuallyHiddenInput type="file" />
+            </Button>
+          </Grid>
+          <Grid item>
+
+            <Button
+              component="label"
+              variant="contained"
+              startIcon={<DownloadIcon />}
+              style={{ marginBottom: "0px" }}
+            >
+              Download Configuration
+            </Button>
+          </Grid>
+        </Grid>
       </Grid>
       <Grid
         item
@@ -130,39 +138,13 @@ export default function ManualConfiguration({
                       width: 1,
                     }}
                   >
-                    <Accordion
-                      expanded={expanded === "panel1"}
-                      sx={{ width: 175, boxShadow: 0 }}
-                    >
-                      <AccordionSummary
-                        id="panel1bh-header"
-                        sx={{ m: 0, pr: 0, height: 10 }}
-                      >
-                        <Stack
-                          spacing={0}
-                          direction="row"
-                          sx={{
-                            px: 0,
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            width: "100%",
-                          }}
-                        >
-                          <Typography sx={{ fontWeight: "bold" }}>
-                            Col {header}
-                          </Typography>
-                          <Switch sx={{}} />
-                        </Stack>
-                      </AccordionSummary>
-
-                      <AccordionDetails sx={{ py: 0 }}>
-                        <HeaderCell
-                          row={0}
-                          col={header}
-                          arraySize={arraySize}
-                        />
-                      </AccordionDetails>
-                    </Accordion>
+                    <HeaderCell
+                      isRunning={isRunning}
+                      isReset={isReset}
+                      expanded={expanded}
+                      col={header}
+                      arraySize={arraySize}
+                    />
                   </TableCell>
                 ))}
               </TableRow>
@@ -189,10 +171,11 @@ export default function ManualConfiguration({
                       sx={{ borderBottom: "none", p: 1, width: 1 }}
                     >
                       <UnitCell
+                        isReset={isReset}
+                        isRunning={isRunning}
                         row={row}
                         col={col}
                         arraySize={arraySize}
-                        // {...register("test")}
                       />
                     </TableCell>
                   ))}
