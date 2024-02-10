@@ -19,6 +19,10 @@ import json
 import math
 import sys
 
+wavelength = 0.010706                       # Meters 
+period = 0.0045                             # Unit cell period in meters
+num_points = 100                            # Plot points
+
 # print(1,2,3)
 # Function: convert state array to radians array
 def states_to_radians(array):
@@ -40,7 +44,7 @@ def array_to_matrix(array, M, N):
     return array.reshape(M, N)
 
 # Pattern function
-def pF(theta,phi): # Pattern function f_e(theta,phi) is set to 1
+def pF(row, col,phase_shifts, theta,phi): # Pattern function f_e(theta,phi) is set to 1
     # Initialize F to zero
     calF = 0
     # Calculate phase factor for each unit cell
@@ -52,8 +56,8 @@ def pF(theta,phi): # Pattern function f_e(theta,phi) is set to 1
     return calF
 
 # Directivity function
-def Dir(theta,phi):
-    F = pF(theta,phi)
+def Dir(row, col, phase_shifts, theta,phi):
+    F = pF(row, col, phase_shifts, theta,phi)
 
     #numerator
     num = 4*np.pi*abs(F)**2
@@ -61,7 +65,7 @@ def Dir(theta,phi):
     # Arrays for evaluating integrals
     theta_array = np.linspace(0, np.pi/2, num_points)
     phi_array = np.linspace(0, 2*np.pi, num_points)
-    pF_array = pF(theta_array[:,np.newaxis], phi_array[np.newaxis,:])
+    pF_array = pF(row, col, phase_shifts, theta_array[:,np.newaxis], phi_array[np.newaxis,:])
       
     # Evaluate integral
     integral = np.trapz(
@@ -75,7 +79,7 @@ def Dir(theta,phi):
 
 def generate_antenna_pattern(data):
     # Import json settings file
-    # data = json.loads(sys.argv[1])
+    # data = json.loads(input_json)
 
     # file = open('configuration_file.json')
     # json_data = json.load(file)
@@ -83,17 +87,23 @@ def generate_antenna_pattern(data):
     # Fetch configuration data from the json
     config_data = data['configuration']
 
+    
+    # print(config_data)
+
     # Get the state of each cell in the array
     state_values = []
     for _, cell_dict in config_data.items():
-        state_values.append(int(cell_dict['state']))
+        print(cell_dict)
+        state_values.append(1 if cell_dict['state'] else 0)
+        # state_values.append(int(cell_dict['state']))
         
+    print("AHHHH")
+    print(state_values)
     # Input params
-    wavelength = 0.010706                       # Meters 
-    period = 0.0045                             # Unit cell period in meters
-    row = int(math.sqrt(len(state_values)))     # Rows             
+
+    row = int(math.sqrt(len(state_values)))     # Rows    
+    print(row)         
     col = row                                   # Cols
-    num_points = 100                            # Plot points
     # print(row, col)
     # Convert state_values to a np array
     config = np.array(state_values)
@@ -108,12 +118,12 @@ def generate_antenna_pattern(data):
     pF_array = []
 
     for i in theta_x:
-            Dir_array.append((Dir(np.radians(i), np.radians(-90))))
+            Dir_array.append((Dir(row, col, phase_shifts, np.radians(i), np.radians(-90))))
 
 
     for i in theta_x:
-            Re_pF = pF(np.radians(i), np.radians(-90)).real
-            Im_pF = pF(np.radians(i), np.radians(-90)).imag
+            Re_pF = pF(row, col, phase_shifts, np.radians(i), np.radians(-90)).real
+            Im_pF = pF(row, col, phase_shifts, np.radians(i), np.radians(-90)).imag
             mag_pF = 20*np.log10(np.sqrt(Re_pF**2 + Im_pF**2))
             if mag_pF < -30:
                 mag_pF = -30
