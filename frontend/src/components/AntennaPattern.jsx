@@ -5,7 +5,7 @@ import { LineChart } from "@mui/x-charts/LineChart";
 // import { Line } from 'react-chartjs-2';
 
 
-const SERVER_URL = "http://localhost:8000";
+const SERVER_URL = "http://192.168.50.51:8000";
 
 const fetchAntennaPattern = async (data = {}) => {
   const response = await fetch(SERVER_URL + "/pattern", {

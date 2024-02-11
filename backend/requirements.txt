@@ -1,5 +1,6 @@
-numpy
+labjack-ljm
 nidaqmx
+numpy
 uvicorn
 fastapi
 fastapi-socketio

@@ -36,7 +36,7 @@ import ManualConfiguration from "./components/ManualConfiguration";
 import AutoConfiguration from "./components/AutoConfiguration";
 import Settings from "./components/Settings";
 
-const SERVER_URL = "http://localhost:8000";
+const SERVER_URL = "http://192.168.50.51:8000";
 // const socket = io(SERVER_URL, { path: "/sockets" });
 
 export default function App() {
@@ -218,7 +218,7 @@ export default function App() {
                 <Grid style={{ height: "100%" }}>
                   <Stack spacing={0} sx={{ m: 0 }}>
                     <Typography variant="button">Status: {isConnected ? "Connected" : "Disconnected"}</Typography>
-                    <AntennaPattern isReset={isReset} />
+                    {/* <AntennaPattern isReset={isReset} /> */}
                   </Stack>
                 </Grid>
               </Grid>
