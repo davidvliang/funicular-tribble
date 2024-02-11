@@ -50,7 +50,7 @@ export default function App() {
   const [count, setCount] = useState(0);
   const [status, setStatus] = useState("");
 
-  const [arraySize, setArraySize] = useState(4);
+  const [arraySize, setArraySize] = useState(2);
   const [frequency, setFrequency] = useState(50);
   const [bitness, setBitness] = useState("1");
 

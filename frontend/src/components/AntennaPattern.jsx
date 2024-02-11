@@ -36,7 +36,7 @@ export default function AntennaPattern(props) {
   useEffect(() => {
     const currentConfiguration = getValues()
     console.log("currentConfiguration", currentConfiguration)
-    setPatternaData(Array.from(Array(181)).map((_, i) => 1))
+    setPatternaData(Array.from(Array(181)).map((_, i) => 0))
     fetchAntennaPattern(currentConfiguration)
       .then((pattern) => setPatternaData(pattern))
       .then(() => setIsLoading(false))
@@ -47,18 +47,25 @@ export default function AntennaPattern(props) {
   }, [patternData])
 
   return (
-    <LineChart
-      // xAxis={[{ data: [-75, -50, -25, 0, 25, 50, 75] }]}
-      series={[
-        {
-          // data: [0,0,0,0,0,0],
-          data: patternData,
-          showMark: false,
-        },
-      ]}
-      // skipAnimation={false}
-      // width={500}
-      height={200}
-    />
+    <>
+      {
+        !Array.isArray(patternData) ?
+          <></>
+          :
+          <LineChart
+            // xAxis={[{ data: [-75, -50, -25, 0, 25, 50, 75] }]}
+            series={[
+              {
+                // data: [0,0,0,0,0,0],
+                data: patternData,
+                showMark: false,
+              },
+            ]}
+            // skipAnimation={false}
+            // width={500}
+            height={200}
+          />
+      }
+    </>
   );
 }
