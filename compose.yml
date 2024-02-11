@@ -1,22 +1,24 @@
 version: "3.9"
 services:
   backend:
-    image: python:3.11
-    build: ./backend
+    build: ./backend 
+    privileged: true
+    network: host
     ports: 
       - 8000:8000
+      - 52362:52362
+    # network_mode: host
     volumes:
-      - ./backend:/opt
+      - ./backend/src:/opt/src
 
   frontend:
-    image: node:21.6.0-alpine3.18
     build: ./frontend
     ports:
       - 5173:5173
+    # network_mode: host
     volumes:
       - ./frontend/public:/opt/public
       - ./frontend/src:/opt/src
       - ./frontend/index.html:/opt/index.html
       - ./frontend/vite.config.js:/opt/vite.config.js
       - ./frontend/.eslintrc.cjs:/opt/.eslintrc.cjs
-
