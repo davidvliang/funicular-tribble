@@ -3,7 +3,6 @@ services:
   backend:
     build: ./backend 
     privileged: true
-    network: host
     ports: 
       - 8000:8000
       - 52362:52362
