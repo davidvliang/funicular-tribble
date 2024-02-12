@@ -5,13 +5,13 @@ import { LineChart } from "@mui/x-charts/LineChart";
 // import { Line } from 'react-chartjs-2';
 
 
-const SERVER_URL = "http://192.168.50.51:8000";
+// const SERVER_URL = "http://192.168.50.51:8000";
+const SERVER_URL = "http://localhost:8000";
 
 const fetchAntennaPattern = async (data = {}) => {
   const response = await fetch(SERVER_URL + "/pattern", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    // body: JSON.stringify({ name: "resultTEset"}),
     body: JSON.stringify(data),
   })
   const pattern = await response.json()
@@ -56,7 +56,6 @@ export default function AntennaPattern(props) {
             // xAxis={[{ data: [-75, -50, -25, 0, 25, 50, 75] }]}
             series={[
               {
-                // data: [0,0,0,0,0,0],
                 data: patternData,
                 showMark: false,
               },
