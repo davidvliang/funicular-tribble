@@ -39,13 +39,7 @@ const VisuallyHiddenInput = styled("input")({
 });
 
 export default function ManualConfiguration(props) {
-  const {
-    submitRef,
-    isRunning,
-    isReset,
-    arraySize,
-    ...other
-  } = props;
+  const { submitRef, isRunning, isReset, arraySize, ...other } = props;
 
   const { register, handleSubmit, setValue, getValues } = useFormContext();
 
@@ -59,6 +53,38 @@ export default function ManualConfiguration(props) {
     setExpanded(isExpanded ? panel : false);
   };
 
+  const handleFileDownload = () => {
+    const name = "configuration.json";
+    const data = getValues();
+    const blobData = new Blob([JSON.stringify(data)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blobData);
+    const link = document.createElement("a");
+    link.download = name;
+    link.href = url;
+    link.click();
+  };
+
+  // Runs when the file is selected for upload
+  const handleFileUpload = async (e) => {
+    e.preventDefault()
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.readAsText(file);
+    reader.onloadend = () => {
+      const data = JSON.parse(reader.result)
+      console.log("Upload", data)
+      setValue("bitness", data.bitness)
+      setValue("arrayDimension", data.arrayDimension)
+      setValue("frequency", data.frequency)
+      setValue("configuration", data.configuration)
+    };
+    reader.onerror = () => {
+      console.log("[ERROR]", reader.error);
+    };
+  };
+
   return (
     //     {/* <Button ref={submitRef} type='submit' variant='contained' style={{ display: 'none' }} /> */}
     <Grid container justifyContent="center">
@@ -67,23 +93,23 @@ export default function ManualConfiguration(props) {
           <Grid item>
             <Button
               component="label"
-              variant="contained"
+              variant="outlined"
               startIcon={<FileUploadIcon />}
               disabled={isRunning}
             >
-              Upload Configuration
-              <VisuallyHiddenInput type="file" />
+              Upload
+              <VisuallyHiddenInput type="file" onChange={handleFileUpload}/>
             </Button>
           </Grid>
           <Grid item>
-
             <Button
               component="label"
-              variant="contained"
+              variant="outlined"
               startIcon={<DownloadIcon />}
               style={{ marginBottom: "0px" }}
+              onClick={handleFileDownload}
             >
-              Download Configuration
+              Download
             </Button>
           </Grid>
         </Grid>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm, FormProvider, useWatch } from "react-hook-form";
 
 import { io } from "socket.io-client";
 
@@ -21,7 +21,7 @@ import Tab from "@mui/material/Tab";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
-import SendIcon from '@mui/icons-material/Send';
+import SendIcon from "@mui/icons-material/Send";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import Select from "@mui/material/Select";
 import TextField from "@mui/material/TextField";
@@ -36,7 +36,8 @@ import ManualConfiguration from "./components/ManualConfiguration";
 import AutoConfiguration from "./components/AutoConfiguration";
 import Settings from "./components/Settings";
 
-const SERVER_URL = "http://192.168.50.51:8000";
+// const SERVER_URL = "http://192.168.50.51:8000";
+const SERVER_URL = "http://localhost:8000";
 // const socket = io(SERVER_URL, { path: "/sockets" });
 
 export default function App() {
@@ -60,8 +61,9 @@ export default function App() {
     data: count + 1,
   };
 
-  methods.register("bitness", { value: bitness })
-
+  methods.register("arrayDimension", { value: arraySize });
+  methods.register("frequency", { value: frequency });
+  methods.register("bitness", { value: bitness });
 
   // useEffect(() => {
   //   socket.on("connect", () => {
@@ -86,20 +88,9 @@ export default function App() {
   };
 
   const fetchStartProgram = async () => {
-    const response = await fetch(SERVER_URL+"/daq")
-    const status = await response.text()
-    
-  }
-
-  const fetchAntennaPattern = async (data = {}) => {
-    const response = await fetch(SERVER_URL + "/daq", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    })
-    const status = response.json()
-    console.log(status);
-  }
+    const response = await fetch(SERVER_URL + "/daq");
+    const status = await response.text();
+  };
 
   useEffect(() => {
     fetchStatus();
@@ -121,9 +112,9 @@ export default function App() {
   const handleStartButton = (event) => {
     console.log("start button pressed.");
     setIsRunning(true);
-    submitRef.current.requestSubmit()
-    const result = methods.getValues()
-    console.log("getValues", result)
+    submitRef.current.requestSubmit();
+    const result = methods.getValues();
+    console.log("getValues", result);
   };
 
   const handleStopButton = () => {
@@ -133,13 +124,13 @@ export default function App() {
 
   const handleResetButton = () => {
     console.log("reset button pressed.");
-    setIsReset(isReset ? false : true)
+    setIsReset(isReset ? false : true);
   };
 
   const handleArraySizeChange = (e) => {
     setArraySize(e.target.value);
-    setIsReset(isReset ? false : true)
-    setIsReset(isReset ? false : true)
+    setIsReset(isReset ? false : true);
+    setIsReset(isReset ? false : true);
   };
 
   const handleFrequencyChange = (e) => {
@@ -148,20 +139,54 @@ export default function App() {
 
   const handleBitnessChange = (e, val) => {
     if (val !== null) {
-      console.log("bitness", val)
-      methods.setValue("bitness", val)
+      console.log("bitness", val);
+      methods.setValue("bitness", val);
       setBitness(val);
     }
   };
 
+  const watchArrayDimension = useWatch({
+    control: methods.control,
+    name: "arrayDimension",
+  });
+  const watchFrequency = useWatch({
+    control: methods.control,
+    name: "frequency",
+  });
+  const watchBitness = useWatch({
+    control: methods.control,
+    name: "bitness",
+  });
+  
+  useEffect(() => {
+    if (watchArrayDimension !== undefined) {
+      console.log("WATCH ARRAY DIMENSION", watchArrayDimension);
+      setArraySize(watchArrayDimension);
+    }
+  }, [watchArrayDimension]);
+  useEffect(() => {
+    if (watchFrequency !== undefined) {
+      console.log("WATCH FREQUENCY", watchFrequency);
+      setFrequency(watchFrequency);
+    }
+  }, [watchFrequency]);
+  useEffect(() => {
+    if (watchBitness !== undefined) {
+      console.log("WATCH BITNESS", watchBitness);
+      setBitness(watchBitness);
+    }
+  }, [watchBitness]);
+
   return (
     <>
-      <AppBar
-        color="navigation"
-        position="sticky"
-      >
+      <AppBar color="navigation" position="sticky">
         <Toolbar sx={{ justifyContent: "space-between" }}>
-          <Avatar variant="rounded" src="/uhm-coe.png" sx={{ mx: { sm: 2 } }} />
+          <Avatar
+            variant="rounded"
+            src="/uhm-coe.png"
+            sx={{ mx: { sm: 2 }, display: { xs: "none", sm: "block" } }}
+            // display={{ xs: "none", md: "block" }}
+          />
           <Typography
             variant="h6"
             component="div"
@@ -217,8 +242,10 @@ export default function App() {
               <Grid item xs={6}>
                 <Grid style={{ height: "100%" }}>
                   <Stack spacing={0} sx={{ m: 0 }}>
-                    <Typography variant="button">Status: {isConnected ? "Connected" : "Disconnected"}</Typography>
-                    {/* <AntennaPattern isReset={isReset} /> */}
+                    <Typography variant="button">
+                      Status: {isConnected ? "Connected" : "Disconnected"}
+                    </Typography>
+                    <AntennaPattern isReset={isReset} />
                   </Stack>
                 </Grid>
               </Grid>
@@ -230,10 +257,10 @@ export default function App() {
                       <Select
                         value={arraySize}
                         label="Array Size"
-                        {...methods.register("arrayDimension")}
+                        // {...methods.register("arrayDimension")}
                         onChange={(e) => handleArraySizeChange(e)}
                         disabled={isRunning}
-                      // size="small"
+                        // size="small"
                       >
                         {Array.from(Array(8)).map((_, val) => (
                           <MenuItem
@@ -251,7 +278,7 @@ export default function App() {
                       <TextField
                         value={frequency}
                         label="Frequency"
-                        {...methods.register("frequency")}
+                        // {...methods.register("frequency")}
                         onChange={(e) => handleFrequencyChange(e)}
                         disabled={isRunning}
                         InputProps={{
@@ -259,7 +286,7 @@ export default function App() {
                             <InputAdornment position="end">Hz</InputAdornment>
                           ),
                         }}
-                      // size="small"
+                        // size="small"
                       />
                     </FormControl>
                   </Grid>
