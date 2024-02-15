@@ -40,6 +40,41 @@ import Settings from "./components/Settings";
 const SERVER_URL = "http://localhost:8000";
 // const socket = io(SERVER_URL, { path: "/sockets" });
 
+
+
+const fetchStatus = async () => {
+  const response = await fetch(SERVER_URL);
+  const status = await response.json();
+  console.log("STATUS THIS", status["status"]);
+  return status
+};
+
+const fetchDebug = async () => {
+  const response = await fetch(SERVER_URL + "/debug", { method: "POST" });
+  const status = await response.json();
+  console.log("DEBUG CLICK");
+  return status["data"]
+};
+
+const fetchStopProgram = async () => {
+  const response = await fetch(SERVER_URL + "/stop_program");
+  const status = await response.text();
+  console.log("/stop_program", status);
+};
+
+const fetchStartProgram = async (data) => {
+  const response = await fetch(SERVER_URL + "/example", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  })
+  const status = await response.json();
+  console.log("CONFIRM", status)
+  return status["confirm"]
+};
+
+
+
 export default function App() {
   const methods = useForm();
 
@@ -48,7 +83,6 @@ export default function App() {
 
   const [selectedTab, setSelectedTab] = useState(1);
   const [isRunning, setIsRunning] = useState(false);
-  const [count, setCount] = useState(0);
   const [status, setStatus] = useState("");
 
   const [arraySize, setArraySize] = useState(2);
@@ -56,10 +90,6 @@ export default function App() {
   const [bitness, setBitness] = useState("1");
 
   const submitRef = useRef();
-
-  const newStatus = {
-    data: count + 1,
-  };
 
   methods.register("arrayDimension", { value: arraySize });
   methods.register("frequency", { value: frequency });
@@ -80,29 +110,11 @@ export default function App() {
   //   });
   // }, []);
 
-  const fetchStatus = async () => {
-    const response = await fetch(SERVER_URL);
-    const status = await response.text();
-    setStatus(status);
-    console.log("here", status);
-  };
 
-  const fetchStartProgram = async () => {
-    const response = await fetch(SERVER_URL + "/daq");
-    const status = await response.text();
-  };
 
-  useEffect(() => {
-    fetchStatus();
-  }, []);
-
-  const handleClick = () => {
-    fetch(SERVER_URL + "/daq", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newStatus),
-    }).then(fetchStatus);
-    console.log("");
+  const handleDebugClick = () => {;
+    fetchDebug()
+      .then((debugCount) => setStatus(debugCount))
   };
 
   const handleTabChange = (event, val) => {
@@ -112,13 +124,15 @@ export default function App() {
   const handleStartButton = (event) => {
     console.log("start button pressed.");
     setIsRunning(true);
-    submitRef.current.requestSubmit();
+    // submitRef.current.requestSubmit();
     const result = methods.getValues();
     console.log("getValues", result);
+    fetchStartProgram(result)
   };
 
   const handleStopButton = () => {
     console.log("stop button pressed.");
+    fetchStopProgram();
     setIsRunning(false);
   };
 
@@ -157,7 +171,7 @@ export default function App() {
     control: methods.control,
     name: "bitness",
   });
-  
+
   useEffect(() => {
     if (watchArrayDimension !== undefined) {
       console.log("WATCH ARRAY DIMENSION", watchArrayDimension);
@@ -176,6 +190,23 @@ export default function App() {
       setBitness(watchBitness);
     }
   }, [watchBitness]);
+
+  useEffect(() => {
+    fetchStatus()
+      .then((response) => {
+        setIsRunning(response["status"])
+        if (JSON.stringify(response["configuration"]) === '{}') {
+          // console.log("ITS EMPTY", response["configuration"])
+        }
+        else {
+          // console.log("ITS NOT EMPTY", response["configuration"])
+          methods.setValue("arrayDimension", response["configuration"]["arrayDimension"])
+          methods.setValue("bitness", response["configuration"]["bitness"])
+          methods.setValue("frequency", response["configuration"]["frequency"])
+          methods.setValue("configuration", response["configuration"]["configuration"])
+        }
+      })
+  },[])
 
   return (
     <>
@@ -196,7 +227,7 @@ export default function App() {
             IRS Control System
           </Typography>
           <Stack spacing={2} direction="row" sx={{ justifyContent: "end" }}>
-            <Button variant="contained" onClick={handleClick}>
+            <Button variant="contained" onClick={handleDebugClick}>
               AH {status}
             </Button>
             <Button
@@ -257,7 +288,6 @@ export default function App() {
                       <Select
                         value={arraySize}
                         label="Array Size"
-                        // {...methods.register("arrayDimension")}
                         onChange={(e) => handleArraySizeChange(e)}
                         disabled={isRunning}
                         // size="small"
@@ -278,7 +308,6 @@ export default function App() {
                       <TextField
                         value={frequency}
                         label="Frequency"
-                        // {...methods.register("frequency")}
                         onChange={(e) => handleFrequencyChange(e)}
                         disabled={isRunning}
                         InputProps={{
